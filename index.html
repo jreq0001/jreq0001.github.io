@@ -23,29 +23,36 @@
     <script>
       // Assign the specification to a local variable vlSpec.
       var vlSpec = {
-		   "$schema":"https://vega.github.io/schema/vega-lite/v4.json",
-		   "width":800,
-		   "height":600,
-		   "title":"Earthquakesofmagnitude4orlargebetween4Oct2020and10Oct2020",
-		   "projection":{
-			  "type":"equalEarth"
-		   },
-		   "layer":[
-			  {
-				 "data":{
-					"url":"https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/worldmap.geo.json",
-					"format":{
-					   "type":"topojson",
-					   "feature":"custom"
-					}
-				 },
-				 "mark":{
-					"type":"geoshape",
-					"fill":"lightgray",
-					"stroke":"white"
-				 }
-			  }
-		   ]
+		  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+		  "width": 900,
+		  "height": 600,
+		  "data": {
+			"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/worldmap.json",
+			"format": {
+			  "type": "topojson",
+			  "feature": "new"
+			}
+		  },
+		  "transform": [{
+			"lookup": "id",
+			"from": {
+			  "data": {
+				"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/co2_per_capita_min.tsv"
+			  },
+			  "key": "iso_n3",
+			  "fields": ["delta1"]
+			}
+		  }],
+		  "projection": {
+			"type": "mercator"
+		  },
+		  "mark": "geoshape",
+		  "encoding": {
+			"color": {
+				"field": "delta1",
+				"type": "quantitative"
+			}
+		  }
 		}// Embed the visualization in the container with id `vis`
       vegaEmbed('#vis', vlSpec);
     </script>
