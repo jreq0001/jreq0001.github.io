@@ -16,7 +16,6 @@
     </style>
   </head>
   <body>
-    <h1>Template for Embedding Vega-Lite Visualization</h1>
     <!-- Container for the visualization -->
     <div id="vis"></div>
 
@@ -152,11 +151,9 @@
 			  "type": "shape",
 			  "from": {"data": "world"},
 			  "encode": {
-				  "enter": {
-					"strokeWidth": {"value": 0.5},
-					"stroke": {"value": "#ffffff"}
-				  },
 				  "update": { 
+					"strokeWidth": {"value": 0.5},
+					"stroke": {"value": "white"},
 					"fill": [
 					  {
 						"test": "datum['change'] != 'null'",
@@ -166,7 +163,14 @@
 					  {
 						"value": "#bdbdbd"
 					  }
-					]
+					],
+					"fillOpacity": { "value": 0.8 }
+				  },
+				  "hover": {
+					"strokeWidth": {"signal": " + 1.5"},
+					"stroke": {"value": "black"},
+					"zindex": {"value": 1},
+					"fillOpacity": { "value": 1 }
 				  }
 			  },
 			  "transform": [
