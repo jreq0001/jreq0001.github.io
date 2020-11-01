@@ -126,9 +126,9 @@
 				"from": "dataset",
 				"key": "iso_n3",
 				"fields": ["id"],
-				"values": ["delta", "1995", "2005", "2014"],
-				"as": ["change", "1995", "2005", "2014"],
-				"default": "null"
+				"values": ["delta", "1995", "2005", "2014", "Country"],
+				"as": ["change", "1995", "2005", "2014", "Country"],
+				"default": "No Information"
 			  }]
 			},
 			{
@@ -142,21 +142,30 @@
 			{
 			  "name": "color",
 			  "type": "linear",
-			  "domain": [-5, 5],
+			  "domain": [-6, 6],
 			  "range": {"scheme": "lightmulti", "count": 20}
 			}
 		  ],
-		  "marks": [
+		  "legends": [
 			{
-			  "type": "shape",
-			  "from": {"data": "world"},
-			  "encode": {
+			  "fill": "color",
+			  "orient": "bottom-right",
+			  "title": "delta",
+			  "format": "0.1"
+			}
+		  ],
+		  "marks": [
+			  {
+				"type": "shape",
+				"name": "map",
+				"from": {"data": "world"},
+				"encode": {
 				  "update": { 
 					"strokeWidth": {"value": 0.5},
 					"stroke": {"value": "white"},
 					"fill": [
 					  {
-						"test": "datum['change'] != 'null'",
+						"test": "datum['change'] !== 'No Information'",
 						"scale": "color", 
 						"field": "change"
 					  },
@@ -171,11 +180,16 @@
 					"stroke": {"value": "black"},
 					"zindex": {"value": 1},
 					"fillOpacity": { "value": 1 }
+				  },
+				  "enter": {
+					"tooltip": {
+					  "signal": "{'Country': datum['Country'], 'CO2 ∆': format(datum['change'], 1)}"
+					}
 				  }
-			  },
-			  "transform": [
-				{ "type": "geoshape", "projection": "projection" }
-			  ]
+				},
+				"transform": [
+				  { "type": "geoshape", "projection": "projection" }
+				]
 			}
 		  ]
 		}// Embed the visualization in the container with id `vis`
