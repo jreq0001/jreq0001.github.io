@@ -231,7 +231,10 @@
 							"as": ["key", "value"]
 							}
 						],
-						"mark": "line",
+						"mark": {
+							"type": "line",
+							"interpolate": "cardinal"
+						},
 						"encoding": {
 							"x": {"field": "key", "type": "nominal", "title": "Year"},
 							"y": {"field": "value", "type": "quantitative", "title": "Total Co2 Emission"}
@@ -248,7 +251,10 @@
 							"as": ["key", "value"]
 							}
 						],
-						"mark": "line",
+						"mark": {
+							"type": "line",
+							"interpolate": "cardinal"
+						},
 						"encoding": {
 							"x": {"field": "key", "type": "nominal", "title": "Year"},
 							"y": {"field": "value", "type": "quantitative", "title": "Total Energy Production"},
