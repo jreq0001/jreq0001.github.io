@@ -1,150 +1,763 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Vega-Lite Bar Chart</title>
+    <title>Global Carbon Emission Comparison</title>
     <meta charset="utf-8" />
 
     <script src="https://cdn.jsdelivr.net/npm/vega@5.16.1"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.16.8"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.12.2"></script>
-
-    <style media="screen">
-      /* Add space between Vega-Embed links  */
-      .vega-actions a {
-        margin-right: 5px;
-      }
-    </style>
-  <style>
-    body {
-      background-color: black;
-    }
-    h1 {
-      font-family: Arial, sans-serif;
-      color: white;
-    }
-    .header-div {
-      width: 100%;
-      text-align: center;
-    }
-    .first-container
-    {
-      display: flex;
-      vertical-align: middle;
-      align-items: center;
-    }
-  </style>
+	<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.12.2"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <div class="header-div">
-      <h1>An Insight into Trumps 2016 Election</h1>
-    </div>
-    <!-- Container for the visualization -->
-    <div class="first-container">
-      <div id="vis"></div>
-      <div id="vis3"></div>
-    </div>
-    <div id="vis2"></div>
+	<!-- Container for the visualization -->
+	<section id="first-vis">
+		<div id="vis_title">
+			<b>Global CO2 Emission Comparison</b>
+		</div>
+		<div id="worldmap_selecter">
+			<label><b>Per Capita</b></label><input type="radio" id="per_capita" value="per_capita" onchange="updateCheckbox(this);" checked>
+			<input type="radio" id="total" value="total" onchange="updateCheckbox(this);"><label><b>Total</b></label>
+		</div>
+		<div id="year_slider">
+			<input type="range" id="year_index" name="points" min="0" max="7" value="7" onchange="updateRangeSlider(this.value)" oninput="updateRangeSlider(this.value)"><br>
+			<b></b><label id="year_label">2014</label></b>
+		</div>
+		<div id="scroll_down_container">
+			<div id="scroll_down_button">
+				<a href="#second-vis"><span></span></a>
+			</div>
+		</div>
+		<div id="vis" style="overflow: hidden;"></div>
+		<div id="loader" style="display: none"></div>
+	</section>
+	<section id="second-vis">
+		<div id="scroll_up_container">
+			<div id="scroll_up_button">
+				<a href="#first-vis"><span></span></a>
+			</div>
+		</div>
+
+		<div id="vis-container">
+			<div id="chart1"></div>
+			<div id="chart2"></div>
+		</div>
+		<div id="vis-container-2">
+			<div id="chart3"></div>
+			<div id="chart4"></div>
+		</div>
+	</section>
+
     <script>
-        // Assign the specification to a local variable vlSpec.
-        var vlSpec ={
-  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
-  "width": 900,
-  "height": 500,
-  "background" : "black",
-  "config": {
-    "style": {
-      "cell": {
-        "stroke": "transparent"
-      }
-    }
-  },
-  "data": {
-    "url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/USA_GeometryCollection_new.json",
-    "format": {
-      "type": "topojson",
-      "feature": "USA"
-    }
-  },
-  "transform": [{
-    "lookup": "id",
-    "from": {
-      "data": {
-        "url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/PollsUnitedStates2.csv"
-      },
-      "key": "State",
-      "fields": ["Average of rawpoll_trump","Population", "Average of rawpoll_clinton"]
-    },
-    "default": "null"
-  }],
-  "encoding": {
-    "color": {
-      "field": "Average of rawpoll_trump",
-      "type": "quantitative",
-      "condition": {
-        "test": "datum['Average of rawpoll_trump'] === null",
-        "value": "#000000"
-      },
-      "scale": {"scheme": "lightmulti"},
-      "legend": {
-        "labelColor": "white",
-        "titleColor": "white"
-      }
-    },
-  "tooltip": [
-      {"field": "Average of rawpoll_trump", "type": "quantitative"},
-      {"field": "Average of rawpoll_clinton", "type": "quantitative"},
-      {"field": "Population", "type": "quantitative"}]
-  },
-  
-  "projection": {
-    "type": "albersUsa"
-  },
-  "mark": "geoshape"
-  
-}// Embed the visualization in the container with id `vis`
-        vegaEmbed('#vis', vlSpec);
-      </script>
+		var per_capita = document.getElementById('per_capita');
+		var total = document.getElementById('total');
+		var active_dataset = 0;
+		var active_year = 7;
+		var years = ['1975', '1985', '1995', '2005', '2010', '2012', '2013', '2014'];
+    	var view;
+		var loading = false;
 
-<script>
-    // Assign the specification to a local variable vlSpec.
-    var vlSpec = {
-  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
-  "data": {"url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/PollUnitedStates4.csv"},
-  "width": {"step": 12},
-  "mark": "bar",
-  "encoding": {
-    "column": {"field": "Population3", "type": "ordinal", "spacing": 10, "title": "Population"},
-    "y": {
-      "aggregate": "mean",
-      "field": "Value",
-      "title": "Poll",
-      "axis": {"grid": false}
-    },
-    "x": {"field": "Trump/Clinton", "axis": {"title": ""}},
-    "color": {"field": "Trump/Clinton", "scale": {"range": ["#2F79C3", "#891639"]}}
-  },
-  "config": {"view": {"stroke": "transparent"}, "axis": {"domainWidth": 1}}
-}
-    vegaEmbed('#vis2', vlSpec);
-  </script>
+    	// Assign the specification to a local variable vlSpec.
+		var selectedCountry = null;
+		const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+		const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+		var vw_str = parseInt((parseInt(vw) / 6)).toString();
+		
+		function result_bind(result) {
+			// access view as result.view
+			view = result.view;
+			_view = result;
+			var div = document.getElementById("vg-tooltip-element");
+			document.getElementById('vis').addEventListener('mouseenter', function(event, item) {
+				div.style.top = event.clientY + "px";
+				div.style.left = event.clientX + "px";
+			});
+			document.getElementById('vis').addEventListener('mousemove', function(event, item) {
+				div.style.top = event.clientY + "px";
+				div.style.left = (event.clientX + 10) + "px";
+			});
+			document.getElementById('vis').addEventListener('mouseleave', function(event, item) {
+				div.classList.remove("visible");
+			});
+			view.addEventListener('mouseover', function(event, item) {
+				if (item !== null)
+				{
+					selectedCountry = item.datum.id
 
-<script>
-  // Assign the specification to a local variable vlSpec.
-  var vlSpec =
-  {
-  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
-  "width": 500,
-  "height": 350,
-  "description": "A bar chart showing the US population distribution of age groups in 2000.",
-  "height": {"step": 17},
-  "data": {"url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/PollsUnitedStates3.csv"},
-  "mark": "bar",
-  "encoding": {
-    "y": {"field": "Trump/Clinton"},
-    "x": {"aggregate": "median", "field": "Adj_Poll", "title": "Poll"},
-     "color": {"field": "Trump/Clinton", "scale": {"range": ["#2F79C3", "#891639"]}}
-  }
-}
+					var tooltipSpec = {
+						"$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+						"width": Math.min(vh, vw) / 2.5,
+						"height": Math.min(vh, vw) / 2.5,
+						"title": item.datum.properties.formal_en,
+						"layer": [
+							{
+							"data": {
+								"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/co2_total.csv"
+							},
+							"transform": [
+								{"filter": "datum.iso_n3 === '" + selectedCountry + "'"},
+								{
+								"fold": ["1995", "2005", "2014"],
+								"as": ["key", "value"]
+								}
+							],
+							"mark": {
+								"type": "line",
+								"interpolate": "cardinal"
+							},
+							"encoding": {
+								"x": {"field": "key", "type": "nominal", "title": "Year"},
+								"y": {"field": "value", "type": "quantitative", "title": "Total Co2 Emission (per 1K Tonnes)"}
+							}
+							},
+							{
+							"data": {
+								"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/energy_prod.csv"
+							},
+							"transform": [
+								{"filter": "datum.iso_n3 === '" + selectedCountry + "'"},
+								{
+								"fold": ["1995", "2005", "2014"],
+								"as": ["key", "value"]
+								}
+							],
+							"mark": {
+								"type": "line",
+								"interpolate": "cardinal"
+							},
+							"encoding": {
+								"x": {"field": "key", "type": "nominal", "title": "Year"},
+								"y": {"field": "value", "type": "quantitative", "title": "Total Energy Production (PJ)"},
+								"color": {
+								"value": "green"
+								}
+							}
+							}
+						],
+						"resolve": {"scale": {"y": "independent"}}
+					}
 
-  vegaEmbed('#vis3', vlSpec);
-  </script>
+					vegaEmbed("#vg-tooltip-element", tooltipSpec);
+					div.classList.add("visible");
+				}
+				else
+				{
+					div.classList.remove("visible");
+				}
+			});
+			div.addEventListener('mouseover', function(event, item) {
+				div.classList.remove("visible");
+			})
+		}
+
+		function getDataSet()
+		{
+			return [
+				["https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/co2_per_capita.csv", [-6, 6], "change in co2 emissions (tonnes per capita)", "change", "turbo", false],
+				["https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/co2_total.csv", [-1000000, 12500000], "total co2 emissions (" + years[active_year] + ")", years[active_year], "magma", true]
+			];
+		}
+
+		var graticule_data = {
+			"scale": (vw / vh) * 200,
+			"angles": [0, 0],
+			"cloned": null,
+			"start": null,
+			"drag": null,
+			"delta": null,
+			"rotateX": null,
+			"centerY": null
+		};
+		
+		function getSpec(dataset_index)
+		{
+			var set = getDataSet();
+			spec = {
+				"width": vw,
+				"height": vh,
+				"title": "Global Carbon Emission Comparison",
+				"config": {
+					"background": "#0f163b"
+				},
+				"actions": {
+					"export": true,
+					"source": false,
+					"compiled": false,
+					"editor": false
+				},
+				"autosize": "none",
+
+				"signals": [
+					{ "name": "tx", "update": "width / 2" },
+					{ "name": "ty", "update": "height / 2" },
+					{
+						"name": "scale",
+						"value": graticule_data["scale"],
+						"on": [{
+							"events": {"type": "wheel", "consume": true},
+							"update": "clamp(scale * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), " + vw_str + ", 3000)"
+						}]
+					},
+					{
+						"name": "angles",
+						"value": graticule_data["angles"],
+						"on": [{
+							"events": "mousedown",
+							"update": "[rotateX, centerY]"
+						}]
+					},
+					{
+						"name": "cloned",
+						"value": graticule_data["cloned"],
+						"on": [{
+							"events": "mousedown",
+							"update": "copy('projection')"
+						}]
+					},
+					{
+						"name": "start",
+						"value": graticule_data["start"],
+						"on": [{
+							"events": "mousedown",
+							"update": "invert(cloned, xy())"
+						}]
+					},
+					{
+						"name": "drag", 
+						"value": graticule_data["drag"],
+						"on": [{
+							"events": "[mousedown, window:mouseup] > window:mousemove",
+							"update": "invert(cloned, xy())"
+						}]
+					},
+					{
+						"name": "delta", 
+						"value": graticule_data["delta"],
+						"on": [{
+							"events": {"signal": "drag"},
+							"update": "[drag[0] - start[0], start[1] - drag[1]]"
+						}]
+					},
+					{
+						"name": "rotateX", 
+						"value": graticule_data["rotateX"],
+						"on": [{
+							"events": {"signal": "delta"},
+							"update": "angles[0] + delta[0]"
+						}]
+					},
+					{
+						"name": "centerY", 
+						"value": graticule_data["centerY"],
+						"on": [{
+							"events": {"signal": "delta"},
+							"update": "clamp(angles[1] + delta[1], -60, 60)"
+							//"update": "clamp(angles[1] + delta[1], " + toString( -(parseInt(vw) / 9)) + "," + toString(parseInt(vw) / 9) + ")"
+						}]
+					}
+				],
+
+				"projections": [
+					{
+					"name": "projection",
+					"type": "equirectangular",
+					"scale": {"signal": "scale"},
+					"rotate": [{"signal": "rotateX"}, 0, 0],
+					"center": [0, {"signal": "centerY"}],
+					"translate": [{"signal": "tx"}, {"signal": "ty"}]
+					}
+				],
+
+				"data": [
+					{
+						"name": "dataset",
+						"url": set[active_dataset][0],
+						"format": {
+							"type": "csv"
+						}
+					},
+					{
+						"name": "world",
+						"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/worldmap.json",
+						"format": {
+							"type": "topojson",
+							"feature": "new"
+						},
+						"transform": [{
+							"type": "lookup",
+							"from": "dataset",
+							"key": "iso_n3",
+							"fields": ["id"],
+							"values": ["delta", '1975', '1985', '1995', '2005', '2010', '2012', '2013', '2014', "Country"],
+							"as": ["change", '1975', '1985', '1995', '2005', '2010', '2012', '2013', '2014', "Country"],
+							"default": "No Information"
+						}]
+					},
+					{
+						"name": "graticule",
+						"transform": [
+							{ "type": "graticule", "step": [15, 15] }
+						]
+					}
+				],
+				"scales": [
+					{
+						"name": "color",
+						"type": "linear",
+						"domain": set[active_dataset][1],
+						"range": {"scheme": set[active_dataset][4], "count": 50},
+						"reverse": set[active_dataset][5]
+					}
+				],
+				"legends": [
+					{
+						"fill": "color",
+						"orient": "bottom-right",
+						"title": set[active_dataset][2],
+						"titleAnchor": "end",
+						"titleLimit": "256",
+						"direction": "horizontal",
+						"format": "0.1",
+						"labelColor": "white",
+						"titleColor": "white"
+					}
+				],
+				"marks": [
+					{
+						"type": "shape",
+						"name": "map",
+						"from": {"data": "world"},
+						"encode": {
+							"update": { 
+								"strokeWidth": {"value": 0.5},
+								"stroke": {"value": "black"},
+								"fill": [
+								{
+									"test": "datum['" + set[active_dataset][3] + "'] !== 'No Information'",
+									"scale": "color", 
+									"field": set[active_dataset][3]
+								},
+								{
+									"value": "#bdbdbd"
+								}
+								],
+								"fillOpacity": { "value": 0.8 }
+							},
+							"hover": {
+								"strokeWidth": {"signal": " + 1.5"},
+								"stroke": {"value": "white"},
+								"zindex": {"value": 1},
+								"fillOpacity": { "value": 1 }
+							}
+						},
+						"transform": [
+							{ "type": "geoshape", "projection": "projection" }
+						]
+					}
+				]
+			}
+			return spec;
+		}
+
+		function updateCheckbox(checkbox) {
+			per_capita.checked = false;
+			total.checked = false;
+			checkbox.checked = true;
+
+			if (checkbox.value == "per_capita") {
+				active_dataset = 0;
+				document.getElementById('year_slider').style.visibility = 'hidden';
+			} else {
+				active_dataset = 1;
+				document.getElementById('year_slider').style.visibility = 'visible';
+			};
+			
+			var signals = view._signals;
+			graticule_data["scale"] = signals.scale.value;
+			graticule_data["angles"] = [signals.scale.value[0], signals.scale.value[1]];
+			graticule_data["cloned"] = signals.cloned.value;
+			if (signals.start.value === null)
+			{
+				graticule_data["start"] = [0, 0]
+			}
+			else
+			{
+				graticule_data["start"] = [signals.start.value[0], signals.start.value[1]];
+			}
+			if (signals.drag.value === null)
+			{
+				graticule_data["drag"] = [0, 0]
+			}
+			else
+			{
+				graticule_data["drag"] = [signals.drag.value[0], signals.drag.value[1]];
+			}
+			if (signals.delta.value === null)
+			{
+				graticule_data["delta"] = [0, 0]
+			}
+			else
+			{
+				graticule_data["delta"] = [signals.delta.value[0], signals.delta.value[1]];
+			}
+			graticule_data["rotateX"] = signals.rotateX.value;
+			graticule_data["centerY"] = signals.centerY.value;
+			var loader_div = document.getElementById('loader');
+			var container_div = document.getElementById('vis');
+			vegaEmbed('#loader', getSpec(active_dataset)).then(function(result) {
+				result_bind(result);
+				loader_div.removeChild(loader_div.childNodes[1]);
+				container_div.innerHTML = '';
+				container_div.appendChild(loader_div.childNodes[0]);
+			}).catch(console.error);
+
+		};
+		
+		function updateRangeSlider(new_value) {
+			active_year = new_value;
+			document.getElementById('year_label').innerHTML = years[active_year];
+			var signals = view._signals;
+			graticule_data["scale"] = signals.scale.value;
+			graticule_data["angles"] = [signals.scale.value[0], signals.scale.value[1]];
+			graticule_data["cloned"] = signals.cloned.value;
+			if (signals.start.value === null)
+			{
+				graticule_data["start"] = [0, 0]
+			}
+			else
+			{
+				graticule_data["start"] = [signals.start.value[0], signals.start.value[1]];
+			}
+			if (signals.drag.value === null)
+			{
+				graticule_data["drag"] = [0, 0]
+			}
+			else
+			{
+				graticule_data["drag"] = [signals.drag.value[0], signals.drag.value[1]];
+			}
+			if (signals.delta.value === null)
+			{
+				graticule_data["delta"] = [0, 0]
+			}
+			else
+			{
+				graticule_data["delta"] = [signals.delta.value[0], signals.delta.value[1]];
+			}
+			graticule_data["rotateX"] = signals.rotateX.value;
+			graticule_data["centerY"] = signals.centerY.value;
+			var loader_div = document.getElementById('loader');
+			var container_div = document.getElementById('vis');
+			if (!loading)
+			{
+				loading = true;
+				vegaEmbed('#loader', getSpec(active_dataset)).then(function(result) {
+					loading = false;
+					result_bind(result);
+					loader_div.removeChild(loader_div.childNodes[1]);
+					container_div.innerHTML = '';
+					container_div.appendChild(loader_div.childNodes[0]);
+				}).catch(console.error);
+			}
+			else
+			{
+				view.finalize(function() {
+					vegaEmbed('#loader', getSpec(active_dataset)).then(function(result) {
+						loading = false;
+						result_bind(result);
+						loader_div.removeChild(loader_div.childNodes[1]);
+						container_div.innerHTML = '';
+						container_div.appendChild(loader_div.childNodes[0]);
+					}).catch(console.error);
+				});
+			}
+		}
+
+		vegaEmbed('#vis', getSpec(active_dataset)).then(function(result) {result_bind(result)}).catch(console.error);
+	</script>
+	<script type="text/javascript">
+		$(function() {
+			$('a[href*=#]').on('click', function(e) {
+				if (e.currentTarget.attributes[0].value == '#first-vis') {
+					showUI();
+				}
+				if (e.currentTarget.attributes[0].value == '#second-vis') {
+					hideUI();
+				}
+				e.preventDefault();
+				$('html, body').animate({
+					 scrollTop: $($(this).attr('href')).offset().top
+				}, 500, 'linear');
+			});
+		});
+
+		function hideUI() {
+			document.getElementById('year_slider').style.visibility = 'hidden';
+			document.getElementById('worldmap_selecter').style.visibility = 'hidden';
+			document.getElementById('vis_title').style.visibility = 'hidden';
+			document.getElementById('scroll_up_container').style.visibility = 'visible';
+			document.getElementById('scroll_down_container').style.visibility = 'hidden';
+		}
+
+		function showUI() {
+			if (document.getElementById('total').checked)
+			{
+				document.getElementById('year_slider').style.visibility = 'visible';
+			}
+			document.getElementById('worldmap_selecter').style.visibility = 'visible';
+			document.getElementById('vis_title').style.visibility = 'visible';
+			document.getElementById('scroll_up_container').style.visibility = 'hidden';
+			document.getElementById('scroll_down_container').style.visibility = 'visible';
+		}
+	</script>
+	<script>
+		var global_co2_total = {
+			"$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+			"width": (vw / 2) - (vw / 4),
+			"height": (vw / 2) - (vw / 4),
+			"title": {
+				"text": "Global Total CO2 Emission",
+				"color": "white"
+			},
+			"titleColor": "white",
+      		"background": "black",
+			"config": {
+				"view": {
+					"stroke": "transparent"
+				}
+			},
+			"layer": [
+				{
+					"data": {
+					"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/globa_co2_data.csv"
+					},
+
+					"mark": {
+					"type": "line",
+					"interpolate": "cardinal"
+					},
+					"encoding": {
+						"x": {
+							"field": "year", 
+							"type": "nominal", 
+							"title": "Year",
+							"axis": {
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"y": {
+							"field": "Total Emissions", 
+							"type": "quantitative", 
+							"title": "Total Emissions (thousand tonnes)",
+							"axis": {
+								"grid": false,
+								"format": ",.2s",
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"color": {
+							"value": "#f6ff4a"
+						}
+					}
+				}
+			]
+		}
+
+		vegaEmbed("#chart1", global_co2_total).then(function(result) {
+			var div = document.getElementById('chart1');
+			div.removeChild(div.childNodes[1]);
+			var node = div.childNodes[0];
+			div.innerHTML = '';
+			div.appendChild(node);
+		}).catch(console.error);
+
+		var global_co2_per_capita = {
+			"$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+			"width": 500,
+			"height": 500,
+			"title": {
+				"text": "Global Average CO2 Emission (per capita)",
+				"color": "white"
+			},
+			"titleColor": "white",
+      		"background": "black",
+			"config": {
+				"view": {
+					"stroke": "transparent"
+				}
+			},
+			"layer": [
+				{
+					"data": {
+					"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/globa_co2_data.csv"
+					},
+
+					"mark": {
+					"type": "line",
+					"interpolate": "cardinal"
+					},
+					"encoding": {
+						"x": {
+							"field": "year", 
+							"type": "nominal", 
+							"title": "Year",
+							"axis": {
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"y": {
+							"field": "Average Emission per Capita", 
+							"type": "quantitative", 
+							"title": "Average Emission per Capita",
+							"axis": {
+								"grid": false,
+								"format": ",.2s",
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"color": {
+							"value": "#f6ff4a"
+						}
+					}
+				}
+			]
+		}
+		vegaEmbed("#chart2", global_co2_per_capita).then(function(result) {
+			var div = document.getElementById('chart2');
+			div.removeChild(div.childNodes[1]);
+			var node = div.childNodes[0];
+			div.innerHTML = '';
+			div.appendChild(node);
+		}).catch(console.error);
+
+		var global_total_supply = {
+			"$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+			"width": 500,
+			"height": 500,
+			"title": {
+				"text": "Global Total Power Generation",
+				"color": "white"
+			},
+			"titleColor": "white",
+      		"background": "black",
+			"config": {
+				"view": {
+					"stroke": "transparent"
+				}
+			},
+			"layer": [
+				{
+					"data": {
+					"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/global_energy_data.csv"
+					},
+
+					"mark": {
+					"type": "line",
+					"interpolate": "cardinal"
+					},
+					"encoding": {
+						"x": {
+							"field": "year", 
+							"type": "nominal", 
+							"title": "Year",
+							"axis": {
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"y": {
+							"field": "Total supply (petajoules)", 
+							"type": "quantitative", 
+							"title": "Total supply (petajoules)",
+							"axis": {
+								"grid": false,
+								"format": ",.2s",
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"color": {
+							"value": "#f6ff4a"
+						}
+					}
+				}
+			]
+		}
+
+		vegaEmbed("#chart3", global_total_supply).then(function(result) {
+			var div = document.getElementById('chart3');
+			div.removeChild(div.childNodes[1]);
+			var node = div.childNodes[0];
+			div.innerHTML = '';
+			div.appendChild(node);
+		}).catch(console.error);
+
+		var global_average_supply_per_capita = {
+			"$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+			"width": 500,
+			"height": 500,
+			"title": {
+				"text": "Global Average Supply per Capita",
+				"color": "white"
+			},
+			"titleColor": "white",
+      		"background": "black",
+			"config": {
+				"view": {
+					"stroke": "transparent"
+				}
+			},
+			"layer": [
+				{
+					"data": {
+					"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/global_energy_data.csv"
+					},
+
+					"mark": {
+					"type": "line",
+					"interpolate": "cardinal"
+					},
+					"encoding": {
+						"x": {
+							"field": "year", 
+							"type": "nominal", 
+							"title": "Year",
+							"axis": {
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"y": {
+							"field": "Supply per capita (gigajoules)", 
+							"type": "quantitative", 
+							"title": "Supply per capita (gigajoules)",
+							"axis": {
+								"grid": false,
+								"format": ",.2s",
+								"titleColor": "white",
+								"labelColor": "white"
+							}
+						},
+						"color": {
+							"value": "#f6ff4a"
+						}
+					}
+				}
+			]
+		}
+
+		vegaEmbed("#chart4", global_average_supply_per_capita).then(function(result) {
+			var div = document.getElementById('chart4');
+			div.removeChild(div.childNodes[1]);
+			var node = div.childNodes[0];
+			div.innerHTML = '';
+			div.appendChild(node);
+		}).catch(console.error);
+	</script>
+  </body>
+</html>
