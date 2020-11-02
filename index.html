@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Global Carbon Emission Comparison</title>
+    <title>Vega-Lite Bar Chart</title>
     <meta charset="utf-8" />
 
     <script src="https://cdn.jsdelivr.net/npm/vega@5.16.1"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.16.8"></script>
-	<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.12.2"></script>
-	<link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.12.2"></script>
 
     <style media="screen">
       /* Add space between Vega-Embed links  */
@@ -15,271 +14,137 @@
         margin-right: 5px;
       }
     </style>
+  <style>
+    body {
+      background-color: black;
+    }
+    h1 {
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .header-div {
+      width: 100%;
+      text-align: center;
+    }
+    .first-container
+    {
+      display: flex;
+      vertical-align: middle;
+      align-items: center;
+    }
+  </style>
   </head>
   <body>
+    <div class="header-div">
+      <h1>An Insight into Trumps 2016 Election</h1>
+    </div>
     <!-- Container for the visualization -->
-    <div id="vis"></div>
-
+    <div class="first-container">
+      <div id="vis"></div>
+      <div id="vis3"></div>
+    </div>
+    <div id="vis2"></div>
     <script>
-    	// Assign the specification to a local variable vlSpec.
-		var selectedCountry = 'null'
+        // Assign the specification to a local variable vlSpec.
+        var vlSpec ={
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "width": 900,
+  "height": 500,
+  "background" : "black",
+  "config": {
+    "style": {
+      "cell": {
+        "stroke": "transparent"
+      }
+    }
+  },
+  "data": {
+    "url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/USA_GeometryCollection_new.json",
+    "format": {
+      "type": "topojson",
+      "feature": "USA"
+    }
+  },
+  "transform": [{
+    "lookup": "id",
+    "from": {
+      "data": {
+        "url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/PollsUnitedStates2.csv"
+      },
+      "key": "State",
+      "fields": ["Average of rawpoll_trump","Population", "Average of rawpoll_clinton"]
+    },
+    "default": "null"
+  }],
+  "encoding": {
+    "color": {
+      "field": "Average of rawpoll_trump",
+      "type": "quantitative",
+      "condition": {
+        "test": "datum['Average of rawpoll_trump'] === null",
+        "value": "#000000"
+      },
+      "scale": {"scheme": "lightmulti"},
+      "legend": {
+        "labelColor": "white",
+        "titleColor": "white"
+      }
+    },
+  "tooltip": [
+      {"field": "Average of rawpoll_trump", "type": "quantitative"},
+      {"field": "Average of rawpoll_clinton", "type": "quantitative"},
+      {"field": "Population", "type": "quantitative"}]
+  },
+  
+  "projection": {
+    "type": "albersUsa"
+  },
+  "mark": "geoshape"
+  
+}// Embed the visualization in the container with id `vis`
+        vegaEmbed('#vis', vlSpec);
+      </script>
 
-		var vlSpec = {
-			"width": 800,
-			"height": 500,
-			"title": "Global Carbon Emission Comparison",
-			"config": {
-				"background": "#0f163b"
-			},
-			"autosize": "none",
+<script>
+    // Assign the specification to a local variable vlSpec.
+    var vlSpec = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "data": {"url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/PollUnitedStates4.csv"},
+  "width": {"step": 12},
+  "mark": "bar",
+  "encoding": {
+    "column": {"field": "Population3", "type": "ordinal", "spacing": 10, "title": "Population"},
+    "y": {
+      "aggregate": "mean",
+      "field": "Value",
+      "title": "Poll",
+      "axis": {"grid": false}
+    },
+    "x": {"field": "Trump/Clinton", "axis": {"title": ""}},
+    "color": {"field": "Trump/Clinton", "scale": {"range": ["#2F79C3", "#891639"]}}
+  },
+  "config": {"view": {"stroke": "transparent"}, "axis": {"domainWidth": 1}}
+}
+    vegaEmbed('#vis2', vlSpec);
+  </script>
 
-			"signals": [
-				{ "name": "tx", "update": "width / 2" },
-				{ "name": "ty", "update": "height / 2" },
-				{
-				"name": "scale",
-				"value": 150,
-				"on": [{
-					"events": {"type": "wheel", "consume": true},
-					"update": "clamp(scale * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 150, 3000)"
-				}]
-				},
-				{
-				"name": "angles",
-				"value": [0, 0],
-				"on": [{
-					"events": "mousedown",
-					"update": "[rotateX, centerY]"
-				}]
-				},
-				{
-				"name": "cloned",
-				"value": null,
-				"on": [{
-					"events": "mousedown",
-					"update": "copy('projection')"
-				}]
-				},
-				{
-				"name": "start",
-				"value": null,
-				"on": [{
-					"events": "mousedown",
-					"update": "invert(cloned, xy())"
-				}]
-				},
-				{
-				"name": "drag", "value": null,
-				"on": [{
-					"events": "[mousedown, window:mouseup] > window:mousemove",
-					"update": "invert(cloned, xy())"
-				}]
-				},
-				{
-				"name": "delta", "value": null,
-				"on": [{
-					"events": {"signal": "drag"},
-					"update": "[drag[0] - start[0], start[1] - drag[1]]"
-				}]
-				},
-				{
-				"name": "rotateX", "value": 0,
-				"on": [{
-					"events": {"signal": "delta"},
-					"update": "angles[0] + delta[0]"
-				}]
-				},
-				{
-				"name": "centerY", "value": 0,
-				"on": [{
-					"events": {"signal": "delta"},
-					"update": "clamp(angles[1] + delta[1], -60, 60)"
-				}]
-				}
-			],
+<script>
+  // Assign the specification to a local variable vlSpec.
+  var vlSpec =
+  {
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "width": 500,
+  "height": 350,
+  "description": "A bar chart showing the US population distribution of age groups in 2000.",
+  "height": {"step": 17},
+  "data": {"url": "https://raw.githubusercontent.com/colincai0/colincai0.github.io/main/PollsUnitedStates3.csv"},
+  "mark": "bar",
+  "encoding": {
+    "y": {"field": "Trump/Clinton"},
+    "x": {"aggregate": "median", "field": "Adj_Poll", "title": "Poll"},
+     "color": {"field": "Trump/Clinton", "scale": {"range": ["#2F79C3", "#891639"]}}
+  }
+}
 
-			"projections": [
-				{
-				"name": "projection",
-				"type": "equirectangular",
-				"scale": {"signal": "scale"},
-				"rotate": [{"signal": "rotateX"}, 0, 0],
-				"center": [0, {"signal": "centerY"}],
-				"translate": [{"signal": "tx"}, {"signal": "ty"}]
-				}
-			],
-
-			"data": [
-				{
-				"name": "dataset",
-				"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/co2_per_capita.csv",
-				"format": {
-					"type": "csv"
-				}
-				},
-				{
-				"name": "world",
-				"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/worldmap.json",
-				"format": {
-					"type": "topojson",
-					"feature": "new"
-				},
-				"transform": [{
-					"type": "lookup",
-					"from": "dataset",
-					"key": "iso_n3",
-					"fields": ["id"],
-					"values": ["delta", "1995", "2005", "2014", "Country"],
-					"as": ["change", "1995", "2005", "2014", "Country"],
-					"default": "No Information"
-				}]
-				},
-				{
-				"name": "graticule",
-				"transform": [
-					{ "type": "graticule", "step": [15, 15] }
-				]
-				}
-			],
-				"scales": [
-				{
-				"name": "color",
-				"type": "linear",
-				"domain": [-6, 6],
-				"range": {"scheme": "lightmulti", "count": 20}
-				}
-			],
-			"legends": [
-				{
-				"fill": "color",
-				"orient": "bottom-right",
-				"title": "delta",
-				"format": "0.1",
-				"labelColor": "white",
-				"titleColor": "white"
-				}
-			],
-			"marks": [
-				{
-					"type": "shape",
-					"name": "map",
-					"from": {"data": "world"},
-					"encode": {
-						"update": { 
-							"strokeWidth": {"value": 0.5},
-							"stroke": {"value": "white"},
-							"fill": [
-							{
-								"test": "datum['change'] !== 'No Information'",
-								"scale": "color", 
-								"field": "change"
-							},
-							{
-								"value": "#bdbdbd"
-							}
-							],
-							"fillOpacity": { "value": 0.8 }
-						},
-						"hover": {
-							"strokeWidth": {"signal": " + 1.5"},
-							"stroke": {"value": "black"},
-							"zindex": {"value": 1},
-							"fillOpacity": { "value": 1 }
-						}
-					},
-					"transform": [
-						{ "type": "geoshape", "projection": "projection" }
-					]
-				}
-			]
-		}// Embed the visualization in the container with id `vis`
-	var inner = '';
-    vegaEmbed('#vis', vlSpec).then(function(result) {
-		// access view as result.view
-		var view = result.view;
-		var div = document.getElementById("vg-tooltip-element");
-		document.getElementById('vis').addEventListener('mouseenter', function(event, item) {
-			div.style.top = event.clientY + "px";
-			div.style.left = event.clientX + "px";
-		});
-		document.getElementById('vis').addEventListener('mousemove', function(event, item) {
-			div.style.top = event.clientY + "px";
-			div.style.left = (event.clientX + 10) + "px";
-		});
-		document.getElementById('vis').addEventListener('mouseleave', function(event, item) {
-			div.classList.remove("visible");
-		});
-		view.addEventListener('mouseover', function(event, item) {
-			if (item !== null)
-			{
-				console.log(item.datum);
-				selectedCountry = item.datum.id
-
-				var tooltipSpec = {
-					"$schema": "https://vega.github.io/schema/vega-lite/v4.json",
-					"width": 200,
-					"height": 200,
-					"title": item.datum.properties.formal_en,
-					"layer": [
-						{
-						"data": {
-							"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/co2_total.csv"
-						},
-						"transform": [
-							{"filter": "datum.iso_n3 === '" + selectedCountry + "'"},
-							{
-							"fold": ["1995", "2005", "2014"],
-							"as": ["key", "value"]
-							}
-						],
-						"mark": {
-							"type": "line",
-							"interpolate": "cardinal"
-						},
-						"encoding": {
-							"x": {"field": "key", "type": "nominal", "title": "Year"},
-							"y": {"field": "value", "type": "quantitative", "title": "Total Co2 Emission (per 1K Tonnes)"}
-						}
-						},
-						{
-						"data": {
-							"url": "https://raw.githubusercontent.com/jreq0001/jreq0001.github.io/main/data/energy_prod.csv"
-						},
-						"transform": [
-							{"filter": "datum.iso_n3 === '" + selectedCountry + "'"},
-							{
-							"fold": ["1995", "2005", "2014"],
-							"as": ["key", "value"]
-							}
-						],
-						"mark": {
-							"type": "line",
-							"interpolate": "cardinal"
-						},
-						"encoding": {
-							"x": {"field": "key", "type": "nominal", "title": "Year"},
-							"y": {"field": "value", "type": "quantitative", "title": "Total Energy Production (PJ)"},
-							"color": {
-							"value": "green"
-							}
-						}
-						}
-					],
-					"resolve": {"scale": {"y": "independent"}}
-				}
-
-				vegaEmbed("#vg-tooltip-element", tooltipSpec);
-				div.classList.add("visible");
-			}
-			else
-			{
-				div.classList.remove("visible");
-			}
-		});
-		div.addEventListener('mouseover', function(event, item) {
-			div.classList.remove("visible");
-		})
-	}).catch(console.error);
-	</script>
-  </body>
-</html>
+  vegaEmbed('#vis3', vlSpec);
+  </script>
